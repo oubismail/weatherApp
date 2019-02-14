@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import com.example.myweatherapp.models.Forecast
 import com.example.myweatherapp.network.WeatherAPI
 import com.google.gson.JsonObject
 
@@ -26,13 +27,14 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         WeatherApp.getAppComponent().inject(this)
 
-        weatherApi.loadForecasts("casablanca",WeatherAPI.API_KEY).enqueue(object  :Callback<JsonObject>{
-            override fun onFailure(call: Call<JsonObject>, t: Throwable) {
+        weatherApi.loadForecasts("casablanca",WeatherAPI.API_KEY).enqueue(object  :Callback<Forecast>{
+            override fun onFailure(call: Call<Forecast>, t: Throwable) {
                 Log.e("MyTag","Call Failed "+t.message)
             }
 
-            override fun onResponse(call: Call<JsonObject>, response: Response<JsonObject>) {
-                Log.e("MyTag", response.toString())
+            override fun onResponse(call: Call<Forecast>, response: Response<Forecast>) {
+                Log.e("MyTag", response.body()?.name)
+                Log.e("MyTag", response.body()?.weather?.first()?.description)
             }
 
         })

@@ -1,5 +1,6 @@
 package com.example.myweatherapp.network
 
+import com.example.myweatherapp.models.Forecast
 import com.google.gson.JsonObject
 import retrofit2.Call
 import retrofit2.http.GET
@@ -12,5 +13,5 @@ interface WeatherAPI {
     }
 
     @GET("weather")
-    fun loadForecasts(@Query("q") cityName :String, @Query("appid") apiKey :String): Call<JsonObject>
+    fun loadForecasts(@Query("q") cityName :String, @Query("appid") apiKey :String): Call<Forecast>
 }
