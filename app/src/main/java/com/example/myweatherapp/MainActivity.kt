@@ -21,8 +21,7 @@ import com.example.myweatherapp.adapters.ForcastesListAdapter
 import com.example.myweatherapp.models.Forecast
 import com.example.myweatherapp.models.ForecastList
 import com.example.myweatherapp.network.WeatherAPI
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -40,6 +39,22 @@ class MainActivity : AppCompatActivity(), ForcastesListAdapter.OnCityClickListen
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private  lateinit var locationManager : LocationManager
     private val PERMISSIONS_REQUEST_LOCATION: Int = 12354
+
+    val locationRequest = LocationRequest.create()?.apply {
+        interval = 10000
+        fastestInterval = 5000
+        priority = LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
+    }
+
+    val locationCallback = object : LocationCallback() {
+        override fun onLocationResult(locationResult: LocationResult?) {
+            locationResult ?: return
+            locationResult.locations.first().let {
+                getCityByLocation(it)
+            }
+            fusedLocationClient.removeLocationUpdates(this)
+        }
+    }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -131,11 +146,7 @@ class MainActivity : AppCompatActivity(), ForcastesListAdapter.OnCityClickListen
 
     @SuppressLint("MissingPermission")
     private fun getLocation() {
-        fusedLocationClient.lastLocation.addOnSuccessListener { location : Location? ->
-            location?.let {
-                getCityByLocation(location)
-            }
-        }
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
     }
 
     private fun getCityByLocation(location: Location) {
