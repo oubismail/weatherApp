@@ -1,10 +1,9 @@
 package com.example.myweatherapp
 
+import android.content.Intent
 import android.os.Bundle
-import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -13,7 +12,7 @@ import com.example.myweatherapp.adapters.ForcastesListAdapter
 import com.example.myweatherapp.models.Forecast
 import com.example.myweatherapp.models.ForecastList
 import com.example.myweatherapp.network.WeatherAPI
-import com.google.gson.JsonObject
+import com.google.gson.Gson
 
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -22,11 +21,11 @@ import retrofit2.Callback
 import retrofit2.Response
 import javax.inject.Inject
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), ForcastesListAdapter.OnCityClickListener {
 
     @Inject
     lateinit var weatherApi : WeatherAPI
-    private val myAdapter = ForcastesListAdapter(mutableListOf())
+    private val myAdapter = ForcastesListAdapter(mutableListOf(), this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,6 +63,14 @@ class MainActivity : AppCompatActivity() {
                     forecastRecyclerView.visibility = View.VISIBLE
                 }
             })
+    }
+
+    override fun onCityClick(forecast: Forecast) {
+        val data = Gson().toJson(forecast)
+        val intent = Intent(this, DetailsActivity::class.java).apply {
+            putExtra(DetailsActivity.CITY_FORECAST, data)
+        }
+        startActivity(intent)
     }
 
     /* weatherApi.loadForecasts("casablanca",WeatherAPI.API_KEY).enqueue(object  :Callback<Forecast>{
