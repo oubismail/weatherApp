@@ -7,4 +7,5 @@
     <string name="humidity">Humidity</string>
     <string name="wind_speed">Wind Speed Km/h</string>
     <string name="pressure">Pressure</string>
+    <string name="location">Location</string>
 </resources>

@@ -16,5 +16,5 @@ interface WeatherAPI {
     fun loadForecastsList(@Query("id") citiesIds :String,@Query("units") units: String, @Query("appid") apiKey :String): Call<ForecastList>
 
     @GET("weather")
-    fun loadForecast(@Query("q") cityName :String, @Query("appid") apiKey :String): Call<Forecast>
+    fun loadForecastByLocation(@Query("lat") lat :Double, @Query("lon") lon :Double,@Query("units") units: String, @Query("appid") apiKey :String): Call<Forecast>
 }
