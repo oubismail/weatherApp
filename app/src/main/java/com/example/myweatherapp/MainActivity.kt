@@ -3,14 +3,20 @@ package com.example.myweatherapp
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.Toast
+import com.example.myweatherapp.adapters.ForcastesListAdapter
 import com.example.myweatherapp.models.Forecast
+import com.example.myweatherapp.models.ForecastList
 import com.example.myweatherapp.network.WeatherAPI
 import com.google.gson.JsonObject
 
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.content_main.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -20,29 +26,58 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var weatherApi : WeatherAPI
+    private val myAdapter = ForcastesListAdapter(mutableListOf())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
         WeatherApp.getAppComponent().inject(this)
+        forecastRecyclerView.apply {
+            layoutManager = LinearLayoutManager(this@MainActivity)
+            adapter  = myAdapter
+        }
 
-        weatherApi.loadForecasts("casablanca",WeatherAPI.API_KEY).enqueue(object  :Callback<Forecast>{
-            override fun onFailure(call: Call<Forecast>, t: Throwable) {
-                Log.e("MyTag","Call Failed "+t.message)
-            }
+        loadForecasts()
 
-            override fun onResponse(call: Call<Forecast>, response: Response<Forecast>) {
-                Log.e("MyTag", response.body()?.name)
-                Log.e("MyTag", response.body()?.weather?.first()?.description)
-            }
-
-        })
-        fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
+        refreshLayout.setOnRefreshListener {
+            loadForecasts()
         }
     }
+
+    private fun loadForecasts() {
+        progressLoading.visibility = View.VISIBLE
+        forecastRecyclerView.visibility = View.INVISIBLE
+        weatherApi.loadForecastsList("2553604,2538474,6547285,2530335,2548885", "metric", WeatherAPI.API_KEY)
+            .enqueue(object : Callback<ForecastList> {
+                override fun onFailure(call: Call<ForecastList>, t: Throwable) {
+                    refreshLayout.isRefreshing = false
+                    progressLoading.visibility = View.INVISIBLE
+                    forecastRecyclerView.visibility = View.VISIBLE
+                    Toast.makeText(this@MainActivity, "Error while loading forecsts", Toast.LENGTH_SHORT).show()
+                }
+
+                override fun onResponse(call: Call<ForecastList>, response: Response<ForecastList>) {
+                    refreshLayout.isRefreshing = false
+                    myAdapter.setData(response.body()?.list ?: emptyList())
+                    progressLoading.visibility = View.INVISIBLE
+                    forecastRecyclerView.visibility = View.VISIBLE
+                }
+            })
+    }
+
+    /* weatherApi.loadForecasts("casablanca",WeatherAPI.API_KEY).enqueue(object  :Callback<Forecast>{
+         override fun onFailure(call: Call<Forecast>, t: Throwable) {
+             Log.e("MyTag","Call Failed "+t.message)
+         }
+
+         override fun onResponse(call: Call<Forecast>, response: Response<Forecast>) {
+             myAdapter.setData(response.body())
+             Log.e("MyTag", response.body()?.name)
+             Log.e("MyTag", response.body()?.weather?.first()?.description)
+         }
+
+     })*/
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
